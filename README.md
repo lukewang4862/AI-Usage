@@ -1,45 +1,62 @@
 # AI Usage
 
-macOS 悬浮额度小组件，展示 Codex、Grok Bot 和 Muse 的剩余额度与自动重置倒计时。当前版本：0.3.7。
+[简体中文](README.zh-CN.md) · [Download for macOS](https://github.com/lukewang4862/AI-Usage/releases/latest)
 
-## 功能
+A small native macOS floating widget for Codex, Grok Bot, and Muse remaining usage and automatic reset countdowns.
 
-- 无 Dock 图标；可拖动，限制在屏幕物理边界内。
-- 左右边缘磁吸、自动收纳、悬停展开；收纳栏显示各服务百分比。
-- 渐变进度条和 `5D 23:52` 倒计时。
-- 右键菜单提供刷新、Settings 和退出；可选择显示哪些服务。
-- Codex 重置券展示与确认使用（取决于账号接口是否提供）。
+## Download and install
 
-## 构建与运行
+1. Download **AI-Usage-v0.3.7-macOS-arm64.zip** from [Releases](https://github.com/lukewang4862/AI-Usage/releases/latest). The source-code archives are for developers.
+2. Unzip it and drag **AI Usage.app** into **Applications**.
+3. Open the app. It appears as a floating widget, with no Dock icon. Right-click it for **Settings**, refresh, or quit.
 
-需要 Apple 芯片 Mac、macOS 14+ 和 Xcode Command Line Tools。
+Requires **Apple silicon (M1 or later)** and **macOS 14 or later**. This release does not support Intel Macs. No developer tools are required to run the downloaded app.
+
+**Signing:** this build is ad-hoc signed, not Apple-notarized. macOS may block its first launch. If you trust this download, use the app-specific **Open Anyway** option in **System Settings → Privacy & Security**, if offered. Do not disable system-wide security protections. Organizations may block unnotarized apps entirely.
+
+## Features
+
+- Separate usage rows for Codex, Grok Bot, and Muse; choose which services to show in Settings.
+- Gradient usage bars and reset countdowns such as `5D 23:52` (days, hours, minutes).
+- Drag anywhere within the physical screen boundary, including the Dock area.
+- Magnetic docking at the left or right edge, automatic collapse, and expansion on hover.
+- Compact edge handle with each service's remaining percentage.
+- Codex reset-credit display and confirmation before use, when supported by the account.
+- Refresh every 60 seconds. Failed reads show an error rather than stale usage.
+
+## Connect your accounts
+
+- **Codex:** install and sign in to Codex.app. The widget uses a separate local Codex app-server process to read your account limits.
+- **Grok:** install and sign in to Grok Bot. The widget reads the current macOS user's Grok login storage and corresponding Keychain item, decrypts the token in memory, and requests usage from the service.
+- **Muse:** right-click the widget, open Settings, and use the Muse login option. Sign in inside the widget's login window. The session is saved in the app's persistent macOS WebKit store. You can close the login window afterward.
+
+Every user supplies their own accounts. The repository and release contain no account tokens, cookies, Keychain data, or personal usage snapshots. Account state is stored outside the app bundle. The original bundle identifier is retained so existing installations keep their preferences and Muse session.
+
+The integrations depend on internal service interfaces and may require updates when providers change them. Muse attempts to rediscover its read-only usage action from public scripts when its previous action becomes invalid. This is not an official app from any provider. Documentation is in English; some app menus and error messages are currently in Chinese.
+
+## Build from source
+
+Requires an Apple silicon Mac, macOS 14+, and Xcode Command Line Tools.
 
 ```sh
 bash build.sh
 open "build/AI Usage.app"
 ```
 
-构建仅写入项目的 build 目录，不自动安装。可将生成的 App 拖到 Applications。当前为本地签名，未经过 Apple 公证。
+The script compiles Swift sources, generates the icon, and ad-hoc signs the app under `build/`. It does not install the app or alter your accounts.
 
-## 登录与数据来源
-
-- **Codex**：需要安装并登录 Codex.app，通过其本地 app-server 读取额度。
-- **Grok**：需要安装并登录 Grok Bot，读取当前用户本机的登录存储和对应钥匙串项，在内存中解密后请求额度接口。
-- **Muse**：通过 Settings 中的登录窗口登录，会话保存在该 App 的 macOS WebKit 存储中。额度查询编号改变时尝试从公开网页脚本自动发现。
-
-每台电脑使用自己的登录账号。仓库不包含任何登录令牌、Cookie、钥匙串数据或个人额度快照。服务内部接口并非稳定的公开 API，上游改版后可能需要适配；读取失败会显示错误而非继续显示旧额度。
-
-## 验证
+## Checks
 
 ```sh
 "build/AI Usage.app/Contents/MacOS/CodexUsage" --self-test
-"build/AI Usage.app/Contents/MacOS/CodexUsage" --drag-self-test
 ```
 
-验证屏幕边界、磁吸阈值、拖动状态和额度解析。运行正常 App 才会查询真实账号。
+Checks cover screen bounds, magnetic docking thresholds, and usage parsing. The optional `--drag-self-test` exercises native drag handlers and requires a working macOS graphical session; it is not a headless CI test. Live account reads require running the app normally.
 
-## 文件
+## Project layout
 
-- `Sources/`：Swift/AppKit 源码及三家服务适配。
-- `Resources/`：App 元数据与图标。保留原 bundle ID 以兼容已有设置及 Muse 会话。
-- `使用说明.md`：使用说明和版本记录。
+- `Sources/`: AppKit UI and provider adapters.
+- `Resources/`: app metadata and icon generator.
+- `build.sh`: local build and signing script.
+- `README.zh-CN.md`: Chinese overview.
+- `使用说明.md`: Chinese usage guide and version history.
